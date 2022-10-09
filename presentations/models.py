@@ -47,6 +47,24 @@ class Presentation(models.Model):
         related_name="presentations",
         on_delete=models.CASCADE,
     )
+    """why name = "" instead get()
+    """
+    @classmethod
+    def create(cls, **kwargs):
+        kwargs["status"] = Status.objects.get(name="SUBMITTED")
+        presentation = cls(**kwargs)
+        presentation.save()
+        return presentation
+
+    def approve(self):
+        status = Status.objects.get(name="APPROVED")
+        self.status = status
+        self.save()
+
+    def reject(self):
+        status = Status.obejects.get(name="REJECTED")
+        self.status = status
+        self.save()
 
     def get_api_url(self):
         return reverse("api_show_presentation", kwargs={"pk": self.pk})
