@@ -3,7 +3,7 @@ from .models import Attendee
 from common.json import ModelEncoder
 from django.views.decorators.http import require_http_methods
 import json
-from .models import ConferenceVO
+from .models import ConferenceVO, AccountVO
 
 
 class ConferenceVODetailEncoder(ModelEncoder):
@@ -28,6 +28,14 @@ class AttendeeDetailEncoder(ModelEncoder):
     encoders = {
         "conference": ConferenceVODetailEncoder()
     }
+
+    def get_extra_data(self, o):
+        count = AccountVO.objects.filter(email=o.email).count()
+        if count > 0:
+            return {"has_account": True}
+        else:
+            return {"has_account": False}
+
 
 
 @require_http_methods(["GET", "POST"])
@@ -108,9 +116,10 @@ def api_show_attendee(request, pk):
     elif request.method == "PUT":
         content = json.loads(request.body)
         try:
-            conference = Conference.objects.get(id=pk)
-            content["conference"] = conference
-        except Conference.DoesNotExist:
+            if "conference" in content:
+                conference = ConferenceVO.objects.get(id=content["conference"])
+                content["conference"] = conference
+        except ConferenceVO.DoesNotExist:
             return JsonResponse(
                     {"message": "Invalid conference id"},
                     status=400,

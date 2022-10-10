@@ -1,0 +1,29 @@
+Start and run conference go server:
+docker build -f monolith/Dockerfile.dev -t conference-go-dev monolith
+docker run -d -v "$(pwd)/monolith:/app" -p 8000:8000 --network conference-go conference-go-dev
+
+Start and run presentation workflow server on conference go network:
+docker build -f presentation_workflow/Dockerfile.dev -t presentation-workflow-dev presentation_workflow
+run with bash:
+docker run -it --network conference-go -v "$(pwd)/presentation_workflow:/app" presentation-workflow-dev bash
+run without bash:
+docker run -it --network conference-go -v "$(pwd)/presentation_workflow:/app" presentation-workflow-dev
+
+
+Enter: (if in bash mode)
+python presentation_mailer/consumer.py
+
+
+
+Start and run RabbitMQ server on conference go network:
+docker run -d  --name rabbitmq --hostname rabbitmq --network conference-go rabbitmq:3
+docker run -v "$(pwd)/monolith:/app" -p 8000:8000 --network conference-go conference-go-dev
+
+
+Start and run mailhog server:
+(earlier:
+docker pull mailhog/mailhog
+)
+docker run -d -p "3000:8025" -e "MH_SMTP_BIND_ADDR=0.0.0.0:25" --name mail --network conference-go mailhog/mailhog
+
+check it at localhost:3000
